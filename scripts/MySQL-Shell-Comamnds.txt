@@ -1,0 +1,106 @@
+-- slide 31
+
+\C user:password@localhost
+
+--slide 31
+
+-- slide 32
+
+session.Createschema('example')
+
+\use example
+
+session.dropSchema('example')
+
+-- end slide 32
+
+-- slide 33
+
+db.Createcollection('round')
+
+db.Createcollection('round')
+
+-- end slide 33
+
+-- slide 35
+
+db.round.add({
+	"fisrtName": "Scott",
+	"lastName" : "Stroz",
+	"date" : "2022-07-12",
+	"score": 44,
+	"adjustedScore" : 44,
+	"course": {"par": 36,
+	    "city": "Charles Town",
+	    "name": "Locust Hill Golf Course - Back Nine",
+	    "slope": 132.00,
+	    "state": "WV",
+	    "rating": 36.00}
+	})
+
+-- end slide 35
+
+-- slide 36
+
+db.round.add([
+	{
+	"fisrtName": "Scott",
+	"lastName" : "Stroz",
+	"date" : "2022-07-12",
+	"score": 44,
+	"adjustedScore" : 44,
+	"course" :{}
+	},
+
+	{
+	"fisrtName": "Scott",
+	"lastName" : "Stroz",
+	"date" : "2022-07-14",
+	"score": 49,
+	"adjustedScore" : 48,
+	"course" : {}
+	}
+	])
+
+-- end slide 36
+
+-- slide 37
+
+db.round.find("lastName = 'Stroz'")
+	db.round.find("score < 36")
+	db.round.find("course.city = :city").bind("city", "Charles Town")
+
+-- end slide 37
+
+-- slide 38
+
+db.round.find().sort(["score"])
+
+db.round.find().sort(["score"]).limit(1)
+
+db.round.find().sort(["score"]).limit(5).offset(5)
+
+-- end slide 38
+
+-- slide 40
+
+db.round.find("score < 36")
+	.fields(["firstName",
+	"lastName",
+	"date",
+	"score",
+	"course.name as courseName"])
+
+-- end slide 40
+
+-- slide 42
+
+db.round.find()
+	.fields(['course.name as courseName',
+	'format(avg(score), 2) * 1  as avg',
+	'min(score) * 1 as lowestScore',
+	'max(score) * 1 as highestScore'])
+	.groupBy(['course.name'])
+	.sort('course.name')
+
+-- end slide 42
