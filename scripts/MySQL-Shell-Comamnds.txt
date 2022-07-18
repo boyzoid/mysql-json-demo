@@ -6,7 +6,7 @@
 
 -- slide 32
 
-session.Createschema('example')
+session.createSchema('example')
 
 \use example
 
@@ -16,9 +16,9 @@ session.dropSchema('example')
 
 -- slide 33
 
-db.Createcollection('round')
+db.createCollection('round')
 
-db.Createcollection('round')
+db.dropCollection('round')
 
 -- end slide 33
 
@@ -42,37 +42,13 @@ db.round.add({
 
 -- slide 36
 
-db.round.add([
-	{
-	"fisrtName": "Scott",
-	"lastName" : "Stroz",
-	"date" : "2022-07-12",
-	"score": 44,
-	"adjustedScore" : 44,
-	"course" :{}
-	},
-
-	{
-	"fisrtName": "Scott",
-	"lastName" : "Stroz",
-	"date" : "2022-07-14",
-	"score": 49,
-	"adjustedScore" : 48,
-	"course" : {}
-	}
-	])
-
--- end slide 36
-
--- slide 37
-
 db.round.find("lastName = 'Stroz'")
 	db.round.find("score < 36")
 	db.round.find("course.city = :city").bind("city", "Charles Town")
 
--- end slide 37
+-- end slide 36
 
--- slide 38
+-- slide 37
 
 db.round.find().sort(["score"])
 
@@ -80,9 +56,9 @@ db.round.find().sort(["score"]).limit(1)
 
 db.round.find().sort(["score"]).limit(5).offset(5)
 
--- end slide 38
+-- end slide 37
 
--- slide 40
+-- slide 39
 
 db.round.find("score < 36")
 	.fields(["firstName",
@@ -91,16 +67,17 @@ db.round.find("score < 36")
 	"score",
 	"course.name as courseName"])
 
--- end slide 40
+-- end slide 39
 
--- slide 42
+-- slide 41
 
 db.round.find()
-	.fields(['course.name as courseName',
-	'format(avg(score), 2) * 1  as avg',
-	'min(score) * 1 as lowestScore',
-	'max(score) * 1 as highestScore'])
-	.groupBy(['course.name'])
-	.sort('course.name')
+    .fields([
+    'course.name as courseName',
+    'ROUND(AVG(score), 2) as avg',
+    'CAST(min(score) AS SIGNED) AS lowestScore',
+    'CAST(max(score) AS SIGNED) AS highestScore'])
+    .groupBy(['course.name'])
+    .sort('course.name')
 
--- end slide 42
+-- end slide 41

@@ -1,4 +1,4 @@
--- slide 10
+-- slide 9
 CREATE TABLE season (
 	`id` int NOT NULL,
 	`name` VARCHAR(100) NOT NULL,
@@ -7,9 +7,9 @@ CREATE TABLE season (
 	`league_id` int NOT NULL,
 	PRIMARY KEY (`id`)
 );
--- end slide 10
+-- end slide 9
 
--- slide 11
+-- slide 10
 INSERT INTO season (name,
 	start_date,
 	league_id,
@@ -20,10 +20,12 @@ VALUES( 'My Test League',
     1,
     '{}'
 );
--- end slide 11
+-- end slide 10
 
 -- slide 12
-SELECT JSON_KEYS(season_settings)
+SELECT JSON_PRETTY(
+	JSON_KEYS(season_settings)
+)
 FROM season
 WHERE id = 23;
 -- end slide 12
@@ -37,60 +39,120 @@ WHERE id = 23;
 -- end slide 13
 
 -- slide 15
-SELECT `id`, `name`
+SELECT `id`,
+       `name`,
+       JSON_VALUE(
+            season_settings,
+            "$.leagueFee"
+        ) league_fee
 FROM season
-WHERE JSON_CONTAINS(season_settings, "70", "$.Leaguefee");
+WHERE JSON_CONTAINS(
+		season_settings,
+		"70",
+		"$.leagueFee"
+		);
 -- end slide 15
 
 -- slide 16
-SELECT `id`, `name`
+SELECT `id`,
+		`name`,
+		JSON_VALUE(
+			season_settings,
+			"$.course.city"
+		) course_city
 FROM season
-WHERE JSON_CONTAINS(season_settings, "70", "$.Leaguefee");
+WHERE JSON_CONTAINS(
+		season_settings,
+		'"Charles Town"',
+		"$.course.city"
+		);
+
+
 -- end slide 16
 
 -- slide 17
-SELECT `id`, `name`
+SELECT `id`,
+	`name`,
+	JSON_VALUE(
+		season_settings,
+		"$.greensFees"
+		RETURNING DECIMAL(4,2)
+		) AS greens_fees
 FROM season
-WHERE JSON_CONTAINS(season_settings, "70", "$.Leaguefee");
+WHERE JSON_VALUE(
+	season_settings,
+	"$.course.state"
+	) = 'WV';
+
+
 -- end slide 17
 
 -- slide 20
 UPDATE season
-SET season_settings = JSON_INSERT(season_settings, "$.aceInsurance", 10 );
+SET
+season_settings =
+JSON_INSERT(
+	season_settings,
+	"$.aceInsurance",
+	10
+);
+
 -- end slide 20
 
 -- slide 21
 UPDATE season
-SET season_settings = JSON_REPLACE(season_settings, "$.golfersPerTeam", 4 );
+SET
+season_settings =
+JSON_REPLACE(
+	season_settings,
+	"$.golfersPerTeam",
+	4
+);
 -- end slide 21
 
 -- slide 22
 UPDATE season
-SET season_settings = JSON_SET(season_settings, "$.rules", JSON_ARRAY() );
+SET
+season_settings =
+JSON_SET(
+	season_settings,
+	"$.bonusPoint",
+	1
+);
+
+
 -- end slide 22
 
 -- slide 23
 UPDATE season
-SET season_settings = JSON_REMOVE(season_settings, "$.aceInsurance" );
--- ens slide 23
+SET
+season_settings =
+JSON_REMOVE(
+	season_settings,
+	"$.aceInsurance"
+);
+-- end slide 23
 
 -- slide 25
-SELECT JSON_PRETTY(
+SELECT
+	JSON_PRETTY(
 	   JSON_OBJECT( 'id', id,
-	        'name', name,
-	        'leagueId', league_id,
-	        'startDate', start_date,
-	        'seasonSettings', season_settings)
+			'name', name,
+			'leagueId', league_id,
+			'startDate', start_date,
+			'seasonSettings', season_settings
+        )
 	)
 from season where id = 24;
 -- end slide 25
 
 -- slide 26
 SELECT JSON_PRETTY(
-   JSON_ARRAY(
+   JSON_ARRAYAGG(
        JSON_OBJECT( 'id', id,
 	        'name', name,
-	        'leagueId', league_id, 'startDate', start_date)
+	        'leagueId', league_id,
+	        'startDate', start_date)
    )
 ) seasons
 FROM season
@@ -99,31 +161,44 @@ ORDER BY start_date DESC;
 -- end slide 26
 
 -- slide 27
-SELECT name, start_date,
-       season_settings->>"$.Course.Name" course_name,
-       CAST(season_settings->>"$.Greensfees" AS DECIMAL(4,2)) greens_fees
+SELECT name,
+	start_date,
+    season_settings->>"$.course.name" course_name,
+    CAST(
+        season_settings->>"$.greensFees"
+        AS DECIMAL(4,2)
+    ) greens_fees
 FROM season
 WHERE year(start_date) >2019
-ORDER BY start_date DESC
+ORDER BY start_date DESC;
 -- end slide 27
 
--- slide 44
-	with rounds as (
-	select doc->> '$.firstName' as firstName,
-	       doc->> '$.lastName' as lastName,
-	       doc->> '$.score' * 1 as score,
-	       doc->> '$.course.name' as courseName,
-	       doc->> '$.date' as datePlayed
-	from round ),
-     roundsAgg as ( select courseName, min( score ) lowScore from rounds group by courseName )
-select  JSON_PRETTY(JSON_OBJECT(
-		'courseName', ra.courseName,
-		'score', ra.lowScore,
-		'golfers', ( select JSON_ARRAYAGG(JSON_OBJECT('golfer', concat(r.firstName, ' ', r.lastName), 'datePlayed', r.datePlayed ) )
-		             from rounds r
-		             where r.score = ra.lowScore and r.courseName = ra.courseName )
-	) ) as data
-from roundsAgg ra
-group by ra.courseName
-order by ra.courseName;
--- end slide 44
+-- slide 43
+WITH
+rounds AS (
+	SELECT doc->> '$.firstName' AS firstName,
+	       doc->> '$.lastName' AS lastName,
+	       CAST(doc->> '$.score' AS SIGNED)  AS score,
+	       doc->> '$.course.name' AS courseName,
+	       doc->> '$.date' AS datePlayed
+	FROM round ),
+ roundsAgg AS (
+	SELECT courseName,
+	MIN( score ) lowScore
+	FROM rounds GROUP BY courseName )
+SELECT  JSON_PRETTY(
+		JSON_OBJECT(
+			'courseName', ra.courseName,
+			'score', ra.lowScore,
+			'golfers', (
+				SELECT JSON_ARRAYAGG(
+					JSON_OBJECT(
+						'golfer', CONCAT(r.firstName, ' ', r.lastName),
+						'datePlayed', r.datePlayed ) )
+	             FROM rounds r
+	             WHERE r.score = ra.lowScore AND r.courseName = ra.courseName )
+	) ) AS data
+FROM roundsAgg ra
+GROUP BY ra.courseName
+ORDER BY ra.courseName;
+-- end slide 43
