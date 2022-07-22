@@ -36,19 +36,20 @@ db.round.add({
 	    "slope": 132.00,
 	    "state": "WV",
 	    "rating": 36.00}
-	})
+})
 
 -- end slide 35
 
--- slide 36
+-- slide 37
+db.round.find()
 
 db.round.find("lastName = 'Stroz'")
-	db.round.find("score < 36")
-	db.round.find("course.city = :city").bind("city", "Charles Town")
+db.round.find("score < 36")
+db.round.find("course.city = :city").bind("city", "Charles Town")
 
--- end slide 36
+-- end slide 37
 
--- slide 37
+-- slide 38
 
 db.round.find().sort(["score"])
 
@@ -56,23 +57,21 @@ db.round.find().sort(["score"]).limit(1)
 
 db.round.find().sort(["score"]).limit(5).offset(5)
 
--- end slide 37
+-- end slide 38
 
--- slide 39
+-- slide 40
 
-db.round.find("score < 36")
-	.fields(["firstName",
+db.round.find("score < 30").fields(["firstName",
 	"lastName",
 	"date",
 	"score",
 	"course.name as courseName"])
 
--- end slide 39
+-- end slide 40
 
--- slide 41
+-- slide 42
 
-db.round.find()
-    .fields([
+db.round.find().fields([
     'course.name as courseName',
     'ROUND(AVG(score), 2) as avg',
     'CAST(min(score) AS SIGNED) AS lowestScore',
@@ -80,4 +79,4 @@ db.round.find()
     .groupBy(['course.name'])
     .sort('course.name')
 
--- end slide 41
+-- end slide 42

@@ -52,33 +52,32 @@ WHERE id = 23;
 
 -- slide 15
 SELECT `id`,
-       `name`,
-       JSON_VALUE(
-            season_settings,
-            "$.leagueFee"
-        ) league_fee
+	`name`,
+	JSON_VALUE(
+	    season_settings,
+	    "$.leagueFee"
+	) league_fee
 FROM season
 WHERE JSON_CONTAINS(
-		season_settings,
-		"70",
-		"$.leagueFee"
-		);
+	season_settings,
+	"70",
+	"$.leagueFee"
+);
 -- end slide 15
 
 -- slide 16
 SELECT `id`,
-		`name`,
-		JSON_VALUE(
-			season_settings,
-			"$.course.city"
-		) course_city
+	`name`,
+	JSON_VALUE(
+		season_settings,
+		"$.course.city"
+	) course_city
 FROM season
 WHERE JSON_CONTAINS(
-		season_settings,
-		'"Charles Town"',
-		"$.course.city"
-		);
-
+	season_settings,
+	'"Charles Town"',
+	"$.course.city"
+);
 
 -- end slide 16
 
@@ -94,18 +93,17 @@ FROM season
 WHERE JSON_VALUE(
 	season_settings,
 	"$.course.state"
-	) = 'WV';
-
+) = 'WV';
 
 -- end slide 17
 
 -- slide 18
 SELECT `id`,
-       `name`,
-        season_settings->"$.course.name"
-            AS course_name,
-        season_settings->>"$.course.city"
-            AS course_city
+	`name`,
+	season_settings->"$.course.name"
+	    AS course_name,
+	season_settings->>"$.course.city"
+	    AS course_city
 FROM season
 order by id desc limit 5;
 -- end slide 18
@@ -116,7 +114,7 @@ SET
 season_settings =
 JSON_INSERT(
 	season_settings,
-	"$.leagueFees",
+	"$.leagueFee",
 	25.50
 );
 
@@ -140,9 +138,8 @@ season_settings =
 JSON_SET(
 	season_settings,
 	"$.golfersPerTeam",
-	4
+	2
 );
-
 
 -- end slide 23
 
@@ -152,7 +149,7 @@ SET
 season_settings =
 JSON_REMOVE(
 	season_settings,
-	"$.aceInsurance"
+	"$.golfersPerTeam"
 );
 -- end slide 24
 
@@ -165,7 +162,7 @@ SELECT
 			'startDate', start_date,
 			'seasonSettings', season_settings
         )
-	)
+	) AS season_info
 from season where id = 24;
 -- end slide 26
 
@@ -185,12 +182,12 @@ ORDER BY start_date DESC;
 
 -- slide 28
 SELECT name,
-	start_date,
     season_settings->>"$.course.name" course_name,
     CAST(
         season_settings->>"$.greensFees"
         AS DECIMAL(4,2)
-    ) greens_fees
+    ) greens_fees,
+    season_settings->>"$.scoring.handicapType" hcp_type
 FROM season
 WHERE year(start_date) >2019
 ORDER BY start_date DESC;
