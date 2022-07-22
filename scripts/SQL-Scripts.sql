@@ -1,11 +1,23 @@
 -- slide 9
-CREATE TABLE season (
-	`id` int NOT NULL,
-	`name` VARCHAR(100) NOT NULL,
-	`season_settings` JSON,
-	`start_date` DATE,
-	`league_id` int NOT NULL,
-	PRIMARY KEY (`id`)
+CREATE TABLE `season` (
+      `id` int NOT NULL AUTO_INCREMENT,
+      `league_id` int NOT NULL,
+      `name` varchar(100) NOT NULL,
+      `start_date` date DEFAULT NULL,
+      `season_settings` json DEFAULT NULL,
+      CHECK(
+        JSON_SCHEMA_VALID('
+            {
+                "type": "object",
+                "properties":{
+                    "leagueFees": {
+                        "type":"number", "minimum":0
+                    }
+                }
+            }
+        ', season_settings)
+      ),
+      PRIMARY KEY (`id`)
 );
 -- end slide 9
 
@@ -87,19 +99,30 @@ WHERE JSON_VALUE(
 
 -- end slide 17
 
--- slide 20
+-- slide 18
+SELECT `id`,
+       `name`,
+        season_settings->"$.course.name"
+            AS course_name,
+        season_settings->>"$.course.city"
+            AS course_city
+FROM season
+order by id desc limit 5;
+-- end slide 18
+
+-- slide 21
 UPDATE season
 SET
 season_settings =
 JSON_INSERT(
 	season_settings,
-	"$.aceInsurance",
-	10
+	"$.leagueFees",
+	25.50
 );
 
--- end slide 20
+-- end slide 21
 
--- slide 21
+-- slide 22
 UPDATE season
 SET
 season_settings =
@@ -108,22 +131,22 @@ JSON_REPLACE(
 	"$.golfersPerTeam",
 	4
 );
--- end slide 21
+-- end slide 22
 
--- slide 22
+-- slide 23
 UPDATE season
 SET
 season_settings =
 JSON_SET(
 	season_settings,
-	"$.bonusPoint",
-	1
+	"$.golfersPerTeam",
+	4
 );
 
 
--- end slide 22
+-- end slide 23
 
--- slide 23
+-- slide 24
 UPDATE season
 SET
 season_settings =
@@ -131,9 +154,9 @@ JSON_REMOVE(
 	season_settings,
 	"$.aceInsurance"
 );
--- end slide 23
+-- end slide 24
 
--- slide 25
+-- slide 26
 SELECT
 	JSON_PRETTY(
 	   JSON_OBJECT( 'id', id,
@@ -144,9 +167,9 @@ SELECT
         )
 	)
 from season where id = 24;
--- end slide 25
+-- end slide 26
 
--- slide 26
+-- slide 27
 SELECT JSON_PRETTY(
    JSON_ARRAYAGG(
        JSON_OBJECT( 'id', id,
@@ -158,9 +181,9 @@ SELECT JSON_PRETTY(
 FROM season
 WHERE id in (23,24)
 ORDER BY start_date DESC;
--- end slide 26
+-- end slide 27
 
--- slide 27
+-- slide 28
 SELECT name,
 	start_date,
     season_settings->>"$.course.name" course_name,
@@ -171,9 +194,9 @@ SELECT name,
 FROM season
 WHERE year(start_date) >2019
 ORDER BY start_date DESC;
--- end slide 27
+-- end slide 28
 
--- slide 43
+-- slide 44
 WITH
 rounds AS (
 	SELECT doc->> '$.firstName' AS firstName,
@@ -201,4 +224,4 @@ SELECT  JSON_PRETTY(
 FROM roundsAgg ra
 GROUP BY ra.courseName
 ORDER BY ra.courseName;
--- end slide 43
+-- end slide 44
