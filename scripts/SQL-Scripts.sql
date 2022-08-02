@@ -67,17 +67,25 @@ WHERE JSON_CONTAINS(
 
 -- slide 16
 SELECT `id`,
-	`name`,
-	JSON_VALUE(
+       `name`,
+       JSON_ARRAYAGG( jt1.role) sub_roles
+FROM season,
+     JSON_TABLE(
+		     season_settings,
+		     "$.subPool[*]" COLUMNS(
+			     subType NVARCHAR(20) PATH '$.type',
+			     role NVARCHAR(20) PATH '$.name'
+			     )
+	     ) as jt1
+WHERE
+	jt1.subType = 'role'
+    AND
+    JSON_CONTAINS(
 		season_settings,
+		'"Charles Town"',
 		"$.course.city"
-	) course_city
-FROM season
-WHERE JSON_CONTAINS(
-	season_settings,
-	'"Charles Town"',
-	"$.course.city"
-);
+	)
+GROUP BY season.id;
 
 -- end slide 16
 
