@@ -201,32 +201,19 @@ WHERE year(start_date) >2019
 ORDER BY start_date DESC;
 -- end slide 28
 
--- slide 44
-WITH
-rounds AS (
-	SELECT doc->> '$.firstName' AS firstName,
-	       doc->> '$.lastName' AS lastName,
-	       CAST(doc->> '$.score' AS SIGNED)  AS score,
-	       doc->> '$.course.name' AS courseName,
-	       doc->> '$.date' AS datePlayed
-	FROM round ),
- roundsAgg AS (
-	SELECT courseName,
-	MIN( score ) lowScore
-	FROM rounds GROUP BY courseName )
-SELECT  JSON_PRETTY(
-		JSON_OBJECT(
-			'courseName', ra.courseName,
-			'score', ra.lowScore,
-			'golfers', (
-				SELECT JSON_ARRAYAGG(
-					JSON_OBJECT(
-						'golfer', CONCAT(r.firstName, ' ', r.lastName),
-						'datePlayed', r.datePlayed ) )
-	             FROM rounds r
-	             WHERE r.score = ra.lowScore AND r.courseName = ra.courseName )
-	) ) AS data
-FROM roundsAgg ra
-GROUP BY ra.courseName
-ORDER BY ra.courseName;
--- end slide 44
+
+-- Slide 30
+explain select * from season where season_settings->>'$.course.name' = 'Locust Hill Golf Course'\G
+-- end slide 30
+
+-- Slide 32
+ALTER TABLE season ADD INDEX course_name ((CAST(season_settings->>'$.course.name' as CHAR(255)) COLLATE utf8mb4_bin));
+-- end slide 32
+
+-- Slide 33
+show indexes from season\G
+-- end slide 33
+
+-- Slide 35
+explain select * from season where season_settings->>'$.course.name' = 'Locust Hill Golf Course'\G
+-- end slide 35
